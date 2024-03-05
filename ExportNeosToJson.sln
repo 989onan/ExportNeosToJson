@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31410.357
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34031.279
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExportNeosToJson", "ExportNeosToJson\ExportNeosToJson.csproj", "{F2155FCD-8684-45CE-B5D0-AAF5BA27081A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExportResoniteToJson", "ExportNeosToJson\ExportResoniteToJson.csproj", "{F2155FCD-8684-45CE-B5D0-AAF5BA27081A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

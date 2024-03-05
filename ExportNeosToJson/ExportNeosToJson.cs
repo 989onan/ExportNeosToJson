@@ -1,26 +1,27 @@
-using BaseX;
+using Elements.Core;
 using FrooxEngine;
 using HarmonyLib;
-using NeosModLoader;
+using ResoniteModLoader;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
-namespace ExportNeosToJson
+namespace ExportResoniteToJson
 {
-    public class ExportNeosToJson : NeosMod
+    public class ExportResoniteToJson : ResoniteMod
     {
-        public override string Name => "ExportNeosToJson";
+        public override string Name => "ExportResoniteToJson";
         public override string Author => "runtime";
-        public override string Version => "1.1.1";
+        public override string Version => "2.0.0";
         public override string Link => "https://github.com/zkxs/ExportNeosToJson";
 
 
         public override void OnEngineInit()
         {
-            Harmony harmony = new Harmony("net.michaelripley.ExportNeosToJson");
+            Harmony harmony = new Harmony("net.michaelripley.ExportResoniteToJson");
             FieldInfo formatsField = AccessTools.DeclaredField(typeof(ModelExportable), "formats");
             if (formatsField == null)
             {
@@ -31,7 +32,8 @@ namespace ExportNeosToJson
             // inject addional formats
             List<string> modelFormats = new List<string>((string[])formatsField.GetValue(null));
             modelFormats.Add("JSON");
-            modelFormats.Add("BSON");
+            modelFormats.Add("RawBSON");
+            modelFormats.Add("BRSON");
             modelFormats.Add("7ZBSON");
             modelFormats.Add("LZ4BSON");
             formatsField.SetValue(null, modelFormats.ToArray());
@@ -45,7 +47,7 @@ namespace ExportNeosToJson
                 Error("Could not find ModelExporter.ExportModel(Slot, string, Predicate<Component>)");
                 return;
             }
-            MethodInfo exportModelPrefix = AccessTools.DeclaredMethod(typeof(ExportNeosToJson), nameof(ExportModelPrefix));
+            MethodInfo exportModelPrefix = AccessTools.DeclaredMethod(typeof(ExportResoniteToJson), nameof(ExportModelPrefix));
             harmony.Patch(exportModelOriginal, prefix: new HarmonyMethod(exportModelPrefix));
 
             Msg("Hook installed successfully");
@@ -57,41 +59,66 @@ namespace ExportNeosToJson
             SavedGraph graph;
             switch (extension)
             {
+                case "JSON":
+                    graph = slot.SaveObject(DependencyHandling.CollectAssets);
+                    __result = ExportJSON(graph, targetFile);
+                    return false; // skip original function
                 case "7ZBSON":
                     graph = slot.SaveObject(DependencyHandling.CollectAssets);
                     __result = Export7zbson(graph, targetFile);
                     return false; // skip original function
-                case "JSON":
+                case "RawBSON":
                     graph = slot.SaveObject(DependencyHandling.CollectAssets);
-                    __result = ExportJson(graph, targetFile);
+                    __result = ToRawBSON(graph, targetFile);
                     return false; // skip original function
                 case "LZ4BSON":
                     graph = slot.SaveObject(DependencyHandling.CollectAssets);
                     __result = ExportLz4bson(graph, targetFile);
                     return false; // skip original function
-                case "BSON":
+                case "BRSON":
                     graph = slot.SaveObject(DependencyHandling.CollectAssets);
-                    __result = ExportBson(graph, targetFile);
+                    __result = ExportBrson(graph, targetFile);
                     return false; // skip original function
                 default:
                     return true; // call original function
             }
         }
 
-        private static async Task<bool> ExportJson(SavedGraph graph, string targetFile)
-        {
-            await new ToBackground();
-            File.WriteAllText(targetFile, DataTreeConverter.ToJSON(graph.Root));
-            Msg(string.Format("exported {0}", targetFile));
-            return true;
-        }
-
-        private static async Task<bool> ExportBson(SavedGraph graph, string targetFile)
+        private static async Task<bool> ToRawBSON(SavedGraph graph, string targetFile)
         {
             await new ToBackground();
             using (FileStream fileStream = File.OpenWrite(targetFile))
             {
-                DataTreeConverter.ToBSON(graph.Root, fileStream);
+                DataTreeConverter.ToRawBSON(graph.Root, fileStream);
+            }
+            Msg(string.Format("exported {0}", targetFile));
+            return true; // call original function
+        }
+
+        private static async Task<bool> ExportJSON(SavedGraph graph, string targetFile)
+        {
+
+            await new ToBackground();
+
+            //aaaaand stole some code from https://github.com/art0007i/LocalStorage/blob/master/LocalStorage/LocalStorage.cs AddItem.
+            using (var fs = File.CreateText(targetFile))
+            {
+                var wr = new JsonTextWriter(fs);
+                wr.Indentation = 2;
+                wr.Formatting = Formatting.Indented;
+                var writeFunc = AccessTools.Method(typeof(DataTreeConverter), "Write");
+                writeFunc.Invoke(null, new object[] { graph, wr });
+            }
+            Msg(string.Format("exported {0}", targetFile));
+            return true;
+        }
+
+        private static async Task<bool> ExportBrson(SavedGraph graph, string targetFile)
+        {
+            await new ToBackground();
+            using (FileStream fileStream = File.OpenWrite(targetFile))
+            {
+                DataTreeConverter.ToBRSON(graph.Root, fileStream);
             }
             Msg(string.Format("exported {0}", targetFile));
             return true; // call original function
