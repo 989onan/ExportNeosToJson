@@ -1,6 +1,6 @@
 # ExportNeosToJson
 
-A [ResoniteModLoader](https://github.com/resonite-modding-group/ResoniteModLoader) mod for [Resonite](https://resonite.com/) A Resonite mod that allows exporting items as json, bson, 7zbson, and lz4bson files. This allows items to be backed up locally, as well as letting you edit normally inaccessible internals, such as arrays. Note that assets behave in weird ways and will (probably?) only be linked to. Json, bson, 7zbson, and lz4bson files can be reimported into the game easily by anyone, without needing a mod.
+A [ResoniteModLoader](https://github.com/resonite-modding-group/ResoniteModLoader) mod for [Resonite](https://resonite.com/) A Resonite mod that allows exporting items as json, bson, 7zbson, and lz4bson files. This allows items to be backed up locally, as well as letting you edit normally inaccessible internals, such as arrays. Note that assets behave in weird ways and will (probably?) only be linked to. Bson, 7zbson, and lz4bson files can be reimported into the game easily by anyone, without needing a mod.
 
 ## Installation
 1. Install [ResoniteModLoader](https://github.com/resonite-modding-group/ResoniteModLoader).
